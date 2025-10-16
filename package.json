@@ -6,10 +6,20 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "@elysiajs/openapi": "^1.4.10",
+    "@oslojs/crypto": "^1.0.1",
+    "@oslojs/encoding": "^1.1.0",
+    "@prisma/client": "^6.16.2",
+    "arctic": "^3.7.0",
+    "elysia": "latest",
+    "noblox.js": "^6.2.0",
+    "prisma": "^6.16.2"
   },
   "devDependencies": {
     "bun-types": "latest"
   },
-  "module": "src/index.js"
+  "module": "src/index.js",
+  "prisma": {
+    "schema": "./prisma/schema/"
+  }
 }

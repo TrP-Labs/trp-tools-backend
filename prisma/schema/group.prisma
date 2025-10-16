@@ -1,0 +1,66 @@
+// Group
+
+model Group {
+  id            String @id @unique @default(uuid())
+  robloxId      String
+  createdAt     DateTime @default(now())
+
+  ranks         RankRelation[]
+  audit         AuditMessage[]
+  routePack     RoutePack[]
+}
+
+model RankRelation {
+  id            String @id @unique @default(uuid())
+  robloxId      String @unique
+  color         String
+  visible       Boolean
+
+  cached_name    String
+  cached_rank    Int
+
+  permission_level Int
+
+  max_activity Int?
+  min_activity Int?
+
+  group         Group @relation(fields: [groupId], references: [id])
+  groupId       String
+}
+
+model AuditMessage {
+  id            String @id @unique @default(uuid())
+
+  Changed       String
+  Date          DateTime @default(now())
+
+  group         Group @relation(fields: [groupId], references: [id])
+  groupId       String
+}
+
+// Routes
+
+model RoutePack {
+  id            String @id @default(uuid())
+  group         Group @relation(fields: [groupId], references: [id])
+  groupId       String
+
+  Users         RoutePackJunction[]
+  Routes        Route[]
+  CreatedAt     DateTime @default(now())
+  UpdatedAt     DateTime @default(now()) @updatedAt
+}
+
+model Route {
+  id            String @id @default(uuid())
+  RoutePack     RoutePack @relation(fields: [routePackId], references: [id])
+  routePackId   String
+
+  favoredBy     User[] @relation("FavoriteRoutes")
+  dislikedBy    User[] @relation("DislikedRoutes")
+
+  Name          String
+  Description   String
+  Color         String
+  Image         String?
+}

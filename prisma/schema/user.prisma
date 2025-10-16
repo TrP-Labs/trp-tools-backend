@@ -1,0 +1,23 @@
+model User {
+    id          String @id @default(uuid())
+    robloxId    Int @unique
+    siteRank    String
+
+    sessions    Session[]
+    apiKeys     Key[]
+
+    inventory   RoutePackJunction[]
+    favorites   Route[] @relation("FavoriteRoutes")
+    disliked    Route[] @relation("DislikedRoutes")
+}
+
+model RoutePackJunction {
+    id          String @id @default(uuid())
+    createdAt   DateTime @default(now())
+
+    user        User @relation(fields: [userId], references: [id])
+    pack        RoutePack @relation(fields: [packId], references: [id])
+
+    userId      String
+    packId      String
+}
