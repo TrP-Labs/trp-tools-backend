@@ -6,14 +6,16 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "@elysiajs/openapi": "^1.4.10",
+    "@elysiajs/openapi": "^1.4.11",
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
-    "@prisma/client": "^6.16.2",
+    "@prisma/client": "^6.17.1",
     "arctic": "^3.7.0",
     "elysia": "latest",
+    "ioredis": "^5.8.2",
+    "nats": "^2.29.3",
     "noblox.js": "^6.2.0",
-    "prisma": "^6.16.2"
+    "prisma": "^6.17.1"
   },
   "devDependencies": {
     "bun-types": "latest"

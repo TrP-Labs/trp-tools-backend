@@ -4,7 +4,7 @@ import { GroupModel } from './model'
 import { Group, Rank } from './service'
 import { globalModel } from '../utils/globalModel'
 
-export const group = new Elysia({ prefix: "/groups" })
+export const group = new Elysia({ prefix: "/groups", tags : ["Groups"] })
     .post('/', async ({ body }) => {
         const id = await Group.createGroup(body)
 

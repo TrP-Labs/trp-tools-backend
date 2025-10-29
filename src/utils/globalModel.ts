@@ -11,4 +11,10 @@ export namespace globalModel {
     export type unauthorized = typeof unauthorized.static
     export const badRequest = t.Literal("Bad Request")
     export type badRequest = typeof badRequest.static
+    export const notFound= t.Literal("Not Found")
+    export type notFound = typeof notFound.static
+    export const requiresAuthenticationCookie = t.Object({
+        access_token : t.String()
+    })
+    export type requiresAuthenticationCookie = typeof requiresAuthenticationCookie.static
 }

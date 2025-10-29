@@ -1,7 +1,7 @@
 import { status } from "elysia";
 import type { GroupModel } from "./model";
 import { globalModel } from "../utils/globalModel";
-import prisma from "../../prisma/prisma";
+import prisma from "../utils/prisma";
 import { getRole, getGroup, getLogo } from "noblox.js";
 
 export abstract class Group {

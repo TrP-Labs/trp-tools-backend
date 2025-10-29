@@ -1,7 +1,7 @@
 import { status } from "elysia";
 import type { AuthModel } from "./model";
 import type { globalModel } from "../utils/globalModel";
-import prisma from "../../prisma/prisma";
+import prisma from "../utils/prisma";
 
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from "@oslojs/encoding";
 import { sha256 } from "@oslojs/crypto/sha2";

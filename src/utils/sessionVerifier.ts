@@ -1,4 +1,4 @@
-import prisma from "../../prisma/prisma";
+import prisma from "./prisma";
 import { encodeHexLowerCase } from "@oslojs/encoding";
 import { sha256 } from "@oslojs/crypto/sha2";
 

@@ -5,7 +5,7 @@ import { Session } from './service'
 import GetSession from '../utils/sessionVerifier'
 import { globalModel } from '../utils/globalModel'
 
-export const auth = new Elysia({ prefix: "/auth" })
+export const auth = new Elysia({ prefix: "/auth", tags : ["Authentication"] })
     .get('/login', async ({cookie: {roblox_oauth_state, roblox_code_verifier}}) => {
         const { url, state, codeVerifier } = await Session.GenerateLogin()
         const ExpiryDate = new Date()
