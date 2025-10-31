@@ -15,7 +15,8 @@
     "ioredis": "^5.8.2",
     "nats": "^2.29.3",
     "noblox.js": "^6.2.0",
-    "prisma": "^6.17.1"
+    "prisma": "^6.17.1",
+    "rrule": "^2.8.1"
   },
   "devDependencies": {
     "bun-types": "latest"

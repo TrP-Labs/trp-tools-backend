@@ -1,0 +1,11 @@
+model Event {
+    eventId     String @id @default(uuid())
+    createdAt   DateTime @default(now())
+
+    name        String
+    startTime   DateTime
+    rrule       String
+
+    group       Group @relation(fields: [groupID], references: [id])
+    groupID     String
+}

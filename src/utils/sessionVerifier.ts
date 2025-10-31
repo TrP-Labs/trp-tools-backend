@@ -2,6 +2,15 @@ import prisma from "./prisma";
 import { encodeHexLowerCase } from "@oslojs/encoding";
 import { sha256 } from "@oslojs/crypto/sha2";
 
+export type session = {
+    authenticated: boolean,
+    user?: {
+        userId: string,
+        robloxId: number,
+        siteRank: string
+    }
+}
+
 export default async function GetSession(token: string) {
     const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 

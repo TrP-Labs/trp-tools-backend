@@ -6,44 +6,16 @@ import { Subscription, StringCodec } from "nats";
 import { getRankInGroup, getRole } from "noblox.js";
 import prisma from "../../utils/prisma";
 import { Vehicles } from "./model";
+import UserHasRank from "../../utils/groupPermission";
 
 const sc = StringCodec()
 
 export abstract class DispatchControls {
 
-    static async CanUserIdDispatchOnGroup(userID: string, groupID: string) {
-        const groupPromise = prisma.group.findFirst({
-            where: {
-                id: groupID
-            },
-            include: {
-                ranks: true
-            }
-        })
-
-        const userPromise = prisma.user.findFirst({
-            where: {
-                id: userID
-            }
-        })
-
-        // Await the two database queries
-        const [group, user] = await Promise.all([groupPromise, userPromise]);
-        if (!group || !user) { throw status(500); return false }
-
-        // Ensure the given userid has permissions
-        const rankNumber = await getRankInGroup(Number(group.robloxId), user.robloxId)
-        const rankObject = await getRole(Number(group.robloxId), rankNumber)
-        const rankRelation = group.ranks.find(u => u.robloxId == rankObject.id.toString())
-        if (!(rankRelation && rankRelation.permission_level >= 1)) return false
-
-        return true
-    }
-
     static async CanUserIdDispatchOnRoom(userID : string, roomID : string) {
         const groupID = await dataRedis.hget(`dispatchroom:${roomID}`, 'groupID')
         if (!groupID) return false
-        return await this.CanUserIdDispatchOnGroup(userID, groupID)
+        return await UserHasRank(userID, groupID, 1)
     }
 
     static async CreateDispatchStream(roomID : string, SourceIdentifier : string) {

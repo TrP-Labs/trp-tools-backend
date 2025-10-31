@@ -8,6 +8,7 @@ model Group {
   ranks         RankRelation[]
   audit         AuditMessage[]
   routePack     RoutePack[]
+  Events        Event[]
 }
 
 model RankRelation {

@@ -140,7 +140,6 @@ export abstract class Rank {
         // Scrub permission change if rank is owner
         if (rank?.cached_rank == 255) {
             modification.permission_level = undefined
-            throw status(403, "Forbidden" satisfies globalModel.forbidden)
         }
 
         try {

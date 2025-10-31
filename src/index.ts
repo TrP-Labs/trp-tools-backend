@@ -3,6 +3,7 @@ import { group } from "./group/controller";
 import { auth } from './auth/controller'
 import { dispatch } from "./rooms/dispatch/controller";
 import { rooms } from "./rooms/controller";
+import { schedule } from "./schedule/controller";
 import openapi from "@elysiajs/openapi";
 
 const app = new Elysia()
@@ -11,6 +12,7 @@ const app = new Elysia()
   .use(auth)
   .use(dispatch)
   .use(rooms)
+  .use(schedule)
   .use(openapi({
     path : "/docs",
     documentation : {
