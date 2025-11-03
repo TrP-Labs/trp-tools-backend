@@ -13,17 +13,17 @@ const sc = StringCodec()
 export abstract class DispatchControls {
 
     static async CanUserIdDispatchOnRoom(userID : string, roomID : string) {
-        const groupID = await dataRedis.hget(`dispatchroom:${roomID}`, 'groupID')
+        const groupID = await dataRedis.hget(`room:${roomID}`, 'groupID')
         if (!groupID) return false
         return await UserHasRank(userID, groupID, 1)
     }
 
     static async CreateDispatchStream(roomID : string, SourceIdentifier : string) {
         // Verify the user is not already connected
-        if (await dataRedis.sismember(`dispatchroom:${roomID}:users`, SourceIdentifier)) throw status(409, "Conflict")
+        //if (await dataRedis.sismember(`dispatchroom:${roomID}:users`, SourceIdentifier)) throw status(409, "Conflict")
 
         // Verify the room exists
-        const groupID = await dataRedis.hget(`dispatchroom:${roomID}`, 'groupID')
+        const groupID = await dataRedis.hget(`room:${roomID}`, 'groupID')
         if (!groupID) throw status(404, "Not Found" satisfies globalModel.notFound)
 
         // Prepare connection
@@ -82,7 +82,7 @@ export abstract class DispatchControls {
     }
 
     static async UpdateList(roomID : string, VehicleList : Vehicles.UpdateBody) {
-        const exists = await dataRedis.exists(`dispatchroom:${roomID}`)
+        const exists = await dataRedis.exists(`room:${roomID}`)
         if (!exists) throw status(404, "Not Found" satisfies globalModel.notFound)
 
         const stackkey = `dispatchroom:${roomID}:vehicles`
@@ -107,6 +107,7 @@ export abstract class DispatchControls {
                 if (!exists) { // We are intentionally not updating already existing IDs on the stack
                     await Promise.all([
                         dataRedis.hset(key, vehicle),
+                        dataRedis.expire(key, 3600),
                         dataRedis.lpush(stackkey, vehicle.Id.toString())
                     ])
                 }
