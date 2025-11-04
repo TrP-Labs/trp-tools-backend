@@ -35,10 +35,14 @@ export abstract class DispatchControls {
             async start(controller) {
                 (async () => {
                     // NATS uses an iterator to listen to messages
+                    const interval = setInterval(() => {
+                        controller.enqueue("HEARTBEAT");  // minimal data, keeps it alive
+                    }, 10_000);
                     for await (const msg of sub) {
                         controller.enqueue(sc.decode(msg.data));
                     }
                     // EXIT A: When the NATS room closes
+                    clearInterval(interval)
                     sub.unsubscribe()
                     dataRedis.srem(`dispatchroom:${roomID}:users`, SourceIdentifier)
                     controller.close();
@@ -105,6 +109,7 @@ export abstract class DispatchControls {
                 const exists = await dataRedis.exists(key)
 
                 if (!exists) { // We are intentionally not updating already existing IDs on the stack
+                    nats.publish(`dispatchroom.${roomID}`, `ADD ${JSON.stringify(vehicle)}`)
                     await Promise.all([
                         dataRedis.hset(key, vehicle),
                         dataRedis.expire(key, 3600),
