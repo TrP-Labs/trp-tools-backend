@@ -2,10 +2,55 @@ import { status } from "elysia";
 import type { GroupModel } from "./model";
 import { globalModel } from "../utils/globalModel";
 import prisma from "../utils/prisma";
-import { getRole, getGroup, getLogo } from "noblox.js";
+import { getRole, getGroup, getLogo, getGroups } from "noblox.js";
+import { session } from "../utils/sessionVerifier";
+import UserHasRank from "../utils/groupPermission";
 
 export abstract class Group {
-    static async createGroup({ robloxId } : GroupModel.group.createGroupBody) : Promise<string> {
+    static async getCreatableGroups(session : session) {
+        if (!session.user) throw status(401)
+        const groups = await getGroups(session.user.robloxId)
+        const ownedGroups = groups.filter(g => g.Rank >= 255)
+        const ownedGroupIds = ownedGroups.map(g => g.Id.toString())
+        const existingOwnedGroups = await prisma.group.findMany({
+            where : {
+                robloxId : {
+                    in : ownedGroupIds
+                }
+            }
+        })
+        const creatableGroups = ownedGroups.filter(og => !existingOwnedGroups.find(fg => fg.robloxId == og.Id.toString()))
+        const creatableGroupIds = creatableGroups.map(g => g.Id.toString())
+        return creatableGroupIds
+    }
+
+    static async getGroups(session : session) : Promise<GroupModel.group.groupList> {
+        if (!session.user) throw status(401)
+        const groups = await getGroups(session.user.robloxId)
+        const roleIds = groups.map(g => g.RoleId.toString())
+        const rankRelations = await prisma.rankRelation.findMany({
+            where : {
+                robloxId : {
+                    in : roleIds
+                },
+                permission_level: { gte: 1 }
+            },
+            select: { groupId: true }
+        })
+        const groupList = rankRelations.map(r => r.groupId)
+
+        return groupList
+    }
+
+    static async createGroup({ robloxId } : GroupModel.group.createGroupBody, session : session) : Promise<string> {
+        if (!session.user) throw status(401)
+
+        // Verify the user owns this group on Roblox
+        const groups = await getGroups(session.user.robloxId)
+        const ownedGroups = groups.filter(g => g.Rank >= 255)
+        const thisGroup = groups.find(g => g.Id.toString() == robloxId)
+        if (!thisGroup || !ownedGroups.find(g => g.Id === thisGroup.Id)) throw status(403)
+
         // Verify this group does not already exist
         const existing = await prisma.group.findFirst({ where: { robloxId: robloxId } });
         if (existing) throw status(409, "group already exists" satisfies GroupModel.group.groupExists)
@@ -64,7 +109,10 @@ export abstract class Group {
 }
 
 export abstract class Rank {
-    static async getAllRanks(id : string) : Promise<GroupModel.ranks.rankListResponse> {
+    static async getAllRanks(id : string, session : session) : Promise<GroupModel.ranks.rankListResponse> {
+        if (!session.user) throw status(401)
+        if (!(await UserHasRank(session.user.userId, id, 3))) throw status(403)
+
         const rankRelations = await prisma.rankRelation.findMany({
             where: { groupId: id }, 
             select: {
@@ -85,7 +133,10 @@ export abstract class Rank {
         return rankRelations
     }
 
-    static async getRank(groupId : string, rankId : string) : Promise<GroupModel.ranks.rankItemResponse> {
+    static async getRank(groupId : string, rankId : string, session : session) : Promise<GroupModel.ranks.rankItemResponse> {
+        if (!session.user) throw status(401)
+        if (!(await UserHasRank(session.user.userId, groupId, 3))) throw status(403)
+
         const rankRelation = await prisma.rankRelation.findFirst({
             where : {id : rankId, groupId : groupId},
             select: {
@@ -106,7 +157,10 @@ export abstract class Rank {
         return rankRelation
     }
 
-    static async bindRank(groupId : string, rankId: string) : Promise<GroupModel.ranks.createRankResponse> {
+    static async bindRank(groupId : string, rankId: string, session : session) : Promise<GroupModel.ranks.createRankResponse> {
+        if (!session.user) throw status(401)
+        if (!(await UserHasRank(session.user.userId, groupId, 3))) throw status(403)
+
         const group = await prisma.group.findFirst({ where: { id : groupId } });
         if (!group) throw status(404, "group does not exist" satisfies GroupModel.group.groupInvalid)
 
@@ -132,7 +186,10 @@ export abstract class Rank {
         return {id : rank.id}
     }
 
-    static async editRank(groupId : string, rankId : string, modification : GroupModel.ranks.editRankBody) {
+    static async editRank(groupId : string, rankId : string, modification : GroupModel.ranks.editRankBody, session : session) {
+        if (!session.user) throw status(401)
+        if (!(await UserHasRank(session.user.userId, groupId, 3))) throw status(403)
+
         const rank = await prisma.rankRelation.findFirst({
             where : { id : rankId, groupId : groupId }
         })

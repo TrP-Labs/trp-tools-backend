@@ -28,6 +28,9 @@ export namespace GroupModel {
         export const groupExists = t.Literal("group already exists")
         export type groupInvalid = typeof groupInvalid.static
         export type groupExists = typeof groupExists.static
+
+        export const groupList = t.Array(t.String())
+        export type groupList = typeof groupList.static
     }
 
     export namespace ranks {
