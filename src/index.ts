@@ -1,4 +1,5 @@
 import { Elysia } from "elysia";
+import { cors } from '@elysiajs/cors'
 import { group } from "./group/controller";
 import { auth } from './auth/controller'
 import { dispatch } from "./rooms/dispatch/controller";
@@ -13,6 +14,14 @@ const app = new Elysia()
   .use(dispatch)
   .use(rooms)
   .use(schedule)
+  .use(
+    cors({
+      origin: process.env.FRONTEND_URL,
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    })
+  )
   .use(openapi({
     path : "/docs",
     documentation : {
@@ -22,7 +31,7 @@ const app = new Elysia()
       }
     }
   }))
-  .listen(3000);
+  .listen(3001);
 
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`

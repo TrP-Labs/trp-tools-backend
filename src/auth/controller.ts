@@ -20,9 +20,14 @@ export const auth = new Elysia({ prefix: "/auth", tags : ["Authentication"] })
     })
     .get('/callback', async ({cookie: {roblox_oauth_state, roblox_code_verifier, access_token}, query : { code, state }}) => {
         const new_access_token = await Session.VerifyOAuth(code, state, roblox_code_verifier.value, roblox_oauth_state.value)
+
+        access_token.sameSite = 'none'
+        access_token.path = '/'
+        access_token.secure = true
+        access_token.httpOnly = true
         access_token.value = new_access_token
 
-        return redirect('/', 303)
+        return redirect(process.env.FRONTEND_URL as string, 303)
     }, {
         query : AuthModel.OauthCallbackQuery,
         cookie : AuthModel.OauthCallbackCookies
