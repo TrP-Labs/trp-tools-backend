@@ -25,12 +25,12 @@ export const schedule = new Elysia({ prefix: "/schedule", tags : ["Schedule"] })
                 403 : globalModel.forbidden
             }
         })
-    .get('/', async ({body, session}) => {
-        const Events = await Schedule.GetSchedules(body, session)
+    .get('/', async ({query, session}) => {
+        const Events = await Schedule.GetSchedules(query, session)
 
         return Events
     }, {
-        body : ScheduleModel.EventsRequest,
+        query : ScheduleModel.EventsRequest,
         response : {
             200 : ScheduleModel.EventsResponse,
             401 : globalModel.unauthorized,
