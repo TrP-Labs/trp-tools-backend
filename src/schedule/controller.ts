@@ -12,6 +12,7 @@ export const schedule = new Elysia({ prefix: "/schedule", tags : ["Schedule"] })
         return { session }
     })
     .post('/', async ({ body, session }) => {
+            console.log("Hewwo World :3")
             const Event = await Schedule.CreateScheduledObject(body, session)
 
             return Event
@@ -24,6 +25,19 @@ export const schedule = new Elysia({ prefix: "/schedule", tags : ["Schedule"] })
                 403 : globalModel.forbidden
             }
         })
+    .get('/', async ({body, session}) => {
+        const Events = await Schedule.GetSchedules(body, session)
+
+        return Events
+    }, {
+        body : ScheduleModel.EventsRequest,
+        response : {
+            200 : ScheduleModel.EventsResponse,
+            401 : globalModel.unauthorized,
+            403 : globalModel.forbidden,
+            404 : globalModel.notFound
+        }
+    })
     .group('/:EventID', (app) => app
         .get('/', async ({ params : { EventID }, session}) => {
             const EventResponse = await Schedule.GetScheduleObject(EventID, session)

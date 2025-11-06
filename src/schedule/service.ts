@@ -15,6 +15,21 @@ function verifyRRule(ruleStr : string) : boolean {
 }
 
 export abstract class Schedule {
+
+    static async GetSchedules(body : ScheduleModel.EventsRequest, session : session) {
+        if (!session.user) throw status(401)
+        if (!( await UserHasRank(session.user.userId, body.groupID, 3))) throw status(403)
+
+        const event = await prisma.event.findMany({
+            where : {
+                groupID: body.groupID
+            },
+        })
+        if (!event) throw status(404)
+
+        return event
+    }
+
     static async GetScheduleObject(ID : string, session : session) {
         if (!session.user) throw status(401)
 

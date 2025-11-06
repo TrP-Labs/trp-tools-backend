@@ -32,4 +32,11 @@ export namespace ScheduleModel {
 
     export const invalidRRule= t.Literal("invalid recurrence rule")
     export type invalidRRule = typeof invalidRRule.static
+
+    export const EventsResponse = t.Array(EventResponse)
+    export type EventsResponse = typeof EventsResponse.static
+    export const EventsRequest = t.Object({
+        groupID : t.String()
+    })
+    export type EventsRequest = typeof EventsRequest.static
 }
