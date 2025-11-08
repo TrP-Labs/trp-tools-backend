@@ -6,6 +6,7 @@ import { dispatch } from "./rooms/dispatch/controller";
 import { rooms } from "./rooms/controller";
 import { schedule } from "./schedule/controller";
 import openapi from "@elysiajs/openapi";
+import { users } from "./users/controller";
 
 const app = new Elysia()
   .get('/', () => {return { message : "Welcome to the TrP Tools API! You can view documentation at https://apis.trptools.com/docs" } }, { detail : {hide : true}})
@@ -14,6 +15,7 @@ const app = new Elysia()
   .use(dispatch)
   .use(rooms)
   .use(schedule)
+  .use(users)
   .use(
     cors({
       origin: process.env.FRONTEND_URL,
