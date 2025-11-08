@@ -10,7 +10,7 @@ export const dispatch = new Elysia({ prefix: "/dispatch", tags : ["Dispatch"]})
         return { session }
     })
     .group('/:roomID', (app) => app
-        .get('/', async ({ cookie : { access_token }, params : { roomID }, session }) => {
+        .get('/connect', async ({ cookie : { access_token }, params : { roomID }, session }) => {
             if (session.authenticated == false || session.user == undefined) throw status(401)
             if (!(await DispatchControls.CanUserIdDispatchOnRoom(session.user.userId, roomID))) throw status(403)
             
