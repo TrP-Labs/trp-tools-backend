@@ -49,3 +49,15 @@ export const rooms = new Elysia({ prefix: "/rooms", tags: [ "Rooms" ]})
             404 : globalModel.notFound
         }
     })
+    .delete('/:RoomID', async ({params : {RoomID}, session}) => {
+        await RoomControls.closeRoom(RoomID, session)
+
+        return "Success" as globalModel.genericSuccess
+    }, {
+        response : {
+            200 : globalModel.genericSuccess,
+            401 : globalModel.unauthorized,
+            403 : globalModel.forbidden,
+            404 : globalModel.notFound
+        }
+    })

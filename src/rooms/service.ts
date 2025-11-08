@@ -48,6 +48,13 @@ async function generateRoom(groupID : string, creatorID : string) {
     return roomID
 }
 
+async function deleteRoomKeys(id : string) {
+  const stream = dataRedis.scanStream({ match: `${id}*`, count: 1000 });
+  for await (const keys of stream) {
+    if (keys.length) await dataRedis.unlink(...keys); // non-blocking delete
+  }
+}
+
 export abstract class RoomControls {
     static async createRoom(body : RoomModel.OpenBody, session : session) {
         if (!session.user) throw status(401)
@@ -96,5 +103,17 @@ export abstract class RoomControls {
             users : Object.values(dispatchUsers),
             vehicles : vehicleAmount
         }
+    }
+
+    static async closeRoom(RoomID : string, session : session) {
+        if (!session.user) throw status(401)
+        const roomInfo = await dataRedis.hgetall(`room:${RoomID}`)
+        if (Object.keys(roomInfo).length === 0) throw status(404)
+        if (!(await UserHasRank(session.user.userId, roomInfo.groupID, 2)) ) throw status(403)
+        await Promise.all([
+            dataRedis.del(`groupindex:${roomInfo.groupID}`),
+            deleteRoomKeys(`room:${RoomID}`),
+            deleteRoomKeys(`dispatchroom:${RoomID}`)
+        ])
     }
 }
