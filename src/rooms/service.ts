@@ -5,6 +5,7 @@ import { RoomModel } from "./model";
 import { status } from "elysia";
 import UserHasRank from "../utils/groupPermission";
 import { encodeBase32LowerCaseNoPadding } from "@oslojs/encoding";
+import { RRule } from "rrule";
 
 type RoomInfo = {
     groupID : string,
@@ -20,11 +21,20 @@ export function generateSecureToken(): string {
     return token;
 }
 
+function EventAvailable(rrulestr: string) {
+  const rule = RRule.fromString(rrulestr)
+  const now = new Date()
+  const past = new Date(now.getTime() - 2 * 60 * 60 * 1000)
+  const future = new Date(now.getTime() + 30 * 60 * 1000)
+  const upcoming = rule.between(past, future, true)
+  return Boolean(upcoming.length)
+}
+
 async function generateRoom(groupID : string, creatorID : string) {
     const roomID = generateSecureToken()
 
     const index = await dataRedis.set(`groupindex:${groupID}`, roomID, "NX")
-    if (!index) throw status(409)
+    if (!index) throw status(409, "This group already has a room open")
     dataRedis.expire(`groupindex:${groupID}`, 3600 * 2)
 
     dataRedis.hset(`room:${roomID}`, {
@@ -49,6 +59,7 @@ export abstract class RoomControls {
         })
 
         if (!event) throw status(404)
+        if(!EventAvailable(event.rrule)) throw status(409, "This event is not scheduled for the current time")
         if (!(await UserHasRank(session.user.userId, event.groupID, 3)) ) throw status(403)
 
         return generateRoom(event.groupID, session.user.userId)

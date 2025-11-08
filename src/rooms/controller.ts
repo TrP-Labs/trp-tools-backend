@@ -2,6 +2,7 @@ import { Elysia } from 'elysia'
 import GetSession from '../utils/sessionVerifier'
 import { RoomModel } from './model'
 import { RoomControls } from './service'
+import { globalModel } from '../utils/globalModel'
 
 export const rooms = new Elysia({ prefix: "/rooms", tags: [ "Rooms" ]})
     .derive(async ({ cookie : { access_token } }) => {
@@ -16,7 +17,11 @@ export const rooms = new Elysia({ prefix: "/rooms", tags: [ "Rooms" ]})
     }, {
         body : RoomModel.OpenBody,
         response : {
-            200 : RoomModel.RoomResponse
+            200 : RoomModel.RoomResponse,
+            401 : globalModel.unauthorized,
+            403 : globalModel.forbidden,
+            404 : globalModel.notFound,
+            409 : RoomModel.CreateRoom409
         }
     })
     .get('/', async ({ query, session}) => {
@@ -26,7 +31,10 @@ export const rooms = new Elysia({ prefix: "/rooms", tags: [ "Rooms" ]})
     }, {
         query : RoomModel.GroupQuery,
         response : {
-            200 : RoomModel.RoomResponse
+            200 : RoomModel.RoomResponse,
+            401 : globalModel.unauthorized,
+            403 : globalModel.forbidden,
+            404 : globalModel.notFound
         }
     })
     .get('/:RoomID', async ({ params : { RoomID }, session}) => {
@@ -35,6 +43,9 @@ export const rooms = new Elysia({ prefix: "/rooms", tags: [ "Rooms" ]})
         return roominfo
     }, {
         response : {
-            200 : RoomModel.ActiveRoomResponse
+            200 : RoomModel.ActiveRoomResponse,
+            401 : globalModel.unauthorized,
+            403 : globalModel.forbidden,
+            404 : globalModel.notFound
         }
     })

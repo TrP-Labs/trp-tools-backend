@@ -25,4 +25,10 @@ export namespace RoomModel {
         vehicles : t.Number()
     })
     export type ActiveRoomResponse = typeof ActiveRoomResponse.static
+
+    export const CreateRoom409 = t.Union([
+        t.Literal("This event is not scheduled for the current time"), 
+        t.Literal("This group already has a room open")
+    ])
+    export type CreateRoom409 = typeof CreateRoom409.Static
 }
