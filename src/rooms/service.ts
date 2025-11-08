@@ -88,7 +88,7 @@ export abstract class RoomControls {
 
         const [roomInfo, dispatchUsers, vehicleAmount] = await Promise.all([
             dataRedis.hgetall(`room:${roomID}`) as unknown as Promise<RoomInfo>,
-            dataRedis.hgetall(`dispatchroom:${roomID}:users`),
+            dataRedis.smembers(`dispatchroom:${roomID}:users`),
             dataRedis.llen(`dispatchroom:${roomID}:vehicles`)
         ])
 
