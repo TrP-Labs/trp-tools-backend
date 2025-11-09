@@ -5,7 +5,7 @@ import { session } from "../../utils/sessionVerifier"
 import { globalModel } from "../../utils/globalModel"
 import { GroupModel } from "../model"
 import { RankModel } from "./model"
-import { getRole } from "noblox.js"
+import { getRole, getRoles } from "noblox.js"
 
 export abstract class Rank {
     static async getAllRanks(id : string, session : session) : Promise<RankModel.rankListResponse> {
@@ -92,5 +92,29 @@ export abstract class Rank {
         }
  
        return "Success" as globalModel.genericSuccess
+    }
+
+    static async getUnassignedRanks(groupId : string, session : session) {
+        if (!session.user) throw status(401)
+        if (!(await UserHasRank(session.user.userId, groupId, 3))) throw status(403) 
+
+        const group = await prisma.group.findUnique({
+            where : {id : groupId},
+            include : {ranks : true}
+        })
+
+        if (!group) throw status(404, "group does not exist" satisfies GroupModel.group.groupInvalid)
+        
+        const ExistingRanks = await getRoles(Number(group.robloxId))
+
+        const UnassignedRanks = ExistingRanks
+            .filter(r => !group.ranks.find(gr => gr.robloxId == r.id.toString()))
+            .map(r => ({
+                robloxId : r.id.toString(),
+                name : r.name,
+                order : Math.abs(r.rank - 255)
+            }))
+
+        return UnassignedRanks
     }
 }

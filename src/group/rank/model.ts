@@ -51,4 +51,11 @@ export namespace RankModel {
         min_activity: t.Optional(t.Number())
     })
     export type editRankBody = typeof editRankBody.static
+
+    export const availableRanksResponse = t.Array(t.Object({
+        robloxId : t.String(),
+        name : t.String(),
+        order : t.Number()
+    }))
+    export type availableRanksResponse = typeof availableRanksResponse.static
 }

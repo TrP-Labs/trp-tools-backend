@@ -12,6 +12,18 @@ export const ranks = new Elysia({ prefix: "/ranks", tags: ["Ranks"] })
         const session = await GetSession(access_token.value as string)
         return { session }
     })
+    .get('/group/:groupId/creatable', async ({ params: { groupId }, session }) => {
+        const ranks = await Rank.getUnassignedRanks(groupId, session)
+
+        return ranks
+    }, {
+        response: {
+            200: RankModel.availableRanksResponse,
+            401: globalModel.unauthorized,
+            403: globalModel.forbidden,
+            404: GroupModel.group.groupInvalid,
+        }
+    })
     .get('/group/:groupId', async ({ params: { groupId }, session }) => {
         const ranks = await Rank.getAllRanks(groupId, session)
 
