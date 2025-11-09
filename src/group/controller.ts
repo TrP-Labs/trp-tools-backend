@@ -2,7 +2,7 @@ import { Elysia } from 'elysia'
 
 import GetSession, { session } from '../utils/sessionVerifier'
 import { GroupModel } from './model'
-import { Group, Rank } from './service'
+import { Group } from './service'
 import { globalModel } from '../utils/globalModel'
 
 export const group = new Elysia({ prefix: "/groups", tags : ["Groups"] })
@@ -58,57 +58,3 @@ export const group = new Elysia({ prefix: "/groups", tags : ["Groups"] })
             404: GroupModel.group.groupInvalid
         }
     })
-    .group('/:groupId/ranks', (app) => app
-        .get('/', async ({ params : { groupId }, session }) => {
-            const ranks = await Rank.getAllRanks(groupId, session)
-
-            return ranks
-        }, {
-            response: {
-                200: GroupModel.ranks.rankListResponse,
-                401: globalModel.unauthorized,
-                403: globalModel.forbidden,
-                404: GroupModel.group.groupInvalid,
-            }
-        })
-        .get('/:rankId', async ({ params : { groupId, rankId }, session }) => {
-            const rank = await Rank.getRank(groupId, rankId, session)
-
-            return rank
-        }, {
-            response: {
-                200: GroupModel.ranks.rankItemResponse,
-                401: globalModel.unauthorized,
-                403: globalModel.forbidden,
-                404: GroupModel.group.groupInvalid,
-            }
-        })
-        .post('/', async ({ body, params : { groupId }, session }) => {
-            console.log(body)
-            const rank = await Rank.bindRank(groupId, body.robloxId, session)
-
-            return rank
-        }, {
-            body : GroupModel.ranks.createRankBody,
-            response : {
-                200 : GroupModel.ranks.createRankResponse,
-                401: globalModel.unauthorized,
-                403: globalModel.forbidden,
-                404 : GroupModel.group.groupInvalid,
-                500 : globalModel.internalError
-            }
-        }) 
-        .patch('/:rankId', async ({ body, params: { groupId, rankId }, session }) => {
-            const result = await Rank.editRank(groupId, rankId, body, session)
-            return result
-        }, {
-            body : GroupModel.ranks.editRankBody,
-            response : {
-                200 : globalModel.genericSuccess,
-                404 : GroupModel.ranks.rankInvalid,
-                401: globalModel.unauthorized,
-                403 : globalModel.forbidden,
-                500 : globalModel.internalError,
-            }
-        })
-    )
