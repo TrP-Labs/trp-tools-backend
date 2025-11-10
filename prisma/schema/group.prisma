@@ -7,7 +7,7 @@ model Group {
 
   ranks         RankRelation[]
   audit         AuditMessage[]
-  routePack     RoutePack[]
+  routePack     Route[]
   Events        Event[]
 }
 
@@ -41,21 +41,10 @@ model AuditMessage {
 
 // Routes
 
-model RoutePack {
-  id            String @id @default(uuid())
-  group         Group @relation(fields: [groupId], references: [id])
-  groupId       String
-
-  Users         RoutePackJunction[]
-  Routes        Route[]
-  CreatedAt     DateTime @default(now())
-  UpdatedAt     DateTime @default(now()) @updatedAt
-}
-
 model Route {
   id            String @id @default(uuid())
-  RoutePack     RoutePack @relation(fields: [routePackId], references: [id])
-  routePackId   String
+  Group         Group @relation(fields: [GroupId], references: [id])
+  GroupId       String
 
   favoredBy     User[] @relation("FavoriteRoutes")
   dislikedBy    User[] @relation("DislikedRoutes")
@@ -63,5 +52,4 @@ model Route {
   Name          String
   Description   String
   Color         String
-  Image         String?
 }
