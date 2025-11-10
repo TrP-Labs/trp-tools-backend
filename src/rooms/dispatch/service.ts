@@ -10,6 +10,18 @@ import UserHasRank from "../../utils/groupPermission";
 
 const sc = StringCodec()
 
+function normalizeVehicle(raw: Record<string, string>) {
+    return {
+        Id: Number(raw.Id),
+        OwnerId: Number(raw.OwnerId),
+        Name: raw.Name,
+        Depot: raw.Depot,
+        route: raw.route ?? undefined,
+        towing: raw.towing === "true" ? true : raw.towing === "false" ? false : undefined,
+        assigned: raw.assigned === "true" ? true : raw.assigned === "false" ? false : undefined
+    }
+}
+
 export abstract class DispatchControls {
 
     static async CanUserIdDispatchOnRoom(userID : string, roomID : string) {
@@ -36,7 +48,7 @@ export abstract class DispatchControls {
                 (async () => {
                     // NATS uses an iterator to listen to messages
                     const interval = setInterval(() => {
-                        controller.enqueue("HEARTBEAT");  // minimal data, keeps it alive
+                        controller.enqueue(JSON.stringify({event : "HEARTBEAT"}));  // minimal data, keeps it alive
                     }, 10_000);
                     for await (const msg of sub) {
                         controller.enqueue(sc.decode(msg.data));
@@ -62,6 +74,19 @@ export abstract class DispatchControls {
         })
     }
 
+    static async GetAllVehicles(roomID: string): Promise<Vehicles.FullVehicleList> {
+        const vehiclesInRoom = await dataRedis.lrange(`dispatchroom:${roomID}:vehicles`, 0, -1)
+        if (vehiclesInRoom.length === 0) throw status(404)
+        const fullVehicleList = await Promise.all(
+            vehiclesInRoom.map(async r => {
+                const raw = await dataRedis.hgetall(`dispatchroom:${roomID}:vehicles:${r}`)
+                return normalizeVehicle(raw)
+            })
+        )
+
+        return fullVehicleList as unknown as Vehicles.FullVehicleList
+    }
+
     static async ModifyVehicle(vehicleID : string, roomID : string, body : Vehicles.VehicleModificationBody) {
         const vehiclesInRoom = await dataRedis.lrange(`dispatchroom:${roomID}:vehicles`, 0, -1)
         if (!vehiclesInRoom.includes(vehicleID)) throw status(404)
@@ -71,6 +96,11 @@ export abstract class DispatchControls {
             Object.entries(body).filter(([_, v]) => v !== undefined)
         )
 
+        nats.publish(`dispatchroom.${roomID}`, JSON.stringify({
+            event : "UPDATE",
+            data : cleanBody
+        }))
+
         await dataRedis.hset(`dispatchroom:${roomID}:vehicles:${vehicleID}`, cleanBody)
     }
 
@@ -78,6 +108,10 @@ export abstract class DispatchControls {
         const vehiclesInRoom = await dataRedis.lrange(`dispatchroom:${roomID}:vehicles`, 0, -1)
         if (!vehiclesInRoom.includes(vehicleID)) throw status(404)
 
+        nats.publish(`dispatchroom.${roomID}`, JSON.stringify({
+            event : "DELETE",
+            data : vehicleID
+        }))
         
         const remH = dataRedis.del(`dispatchroom:${roomID}:vehicles:${vehicleID}`) // Data hash
         const remL = dataRedis.lrem(`dispatchroom:${roomID}:vehicles`, 1, vehicleID) // Index list entry
@@ -109,7 +143,11 @@ export abstract class DispatchControls {
                 const exists = await dataRedis.exists(key)
 
                 if (!exists) { // We are intentionally not updating already existing IDs on the stack
-                    nats.publish(`dispatchroom.${roomID}`, `ADD ${JSON.stringify(vehicle)}`)
+                    nats.publish(`dispatchroom.${roomID}`, JSON.stringify({
+                        event : "ADD",
+                        data : vehicle
+                    }))
+
                     await Promise.all([
                         dataRedis.hset(key, vehicle),
                         dataRedis.expire(key, 3600),
