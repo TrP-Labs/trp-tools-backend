@@ -7,8 +7,9 @@ model Group {
 
   ranks         RankRelation[]
   audit         AuditMessage[]
-  routePack     Route[]
-  Events        Event[]
+  routes        Route[]
+  events        Event[]
+  bot           BotConfig?
 }
 
 model RankRelation {
@@ -17,14 +18,15 @@ model RankRelation {
   color         String
   visible       Boolean
 
-  cached_name    String
-  cached_rank    Int
+  cached_name   String
+  cached_rank   Int
 
   permission_level Int
 
-  max_activity Int?
-  min_activity Int?
+  max_activity  Int?
+  min_activity  Int?
 
+  staffRequestObject StaffRequest?
   group         Group @relation(fields: [groupId], references: [id])
   groupId       String
 }
@@ -52,4 +54,30 @@ model Route {
   Name          String
   Description   String
   Color         String
+}
+
+// Bot
+
+model BotConfig {
+  id            String @id @default(uuid())
+  group         Group @relation(fields: [groupId], references: [id])
+  groupId       String @unique
+
+  guildId       String
+  
+  announcementChannel String?
+  pollChannel   String?
+
+  staffRequests StaffRequest[]
+}
+
+model StaffRequest {
+  id            String @id @default(uuid())
+  parentConfig  BotConfig @relation(fields: [parentId], references: [id])
+  parentId      String
+
+  announcementChannel String
+  slots         String[]
+  bindedRank    RankRelation @relation(fields: [bindedRankId], references: [id])
+  bindedRankId  String @unique
 }
